@@ -14,20 +14,37 @@ Note:
 Construct graph
 '''
 
-'''graph1'''
+'''
+Configuration
+'''
+COSTS = {
+    0: 0, #reachable
+    1: float('inf'), #obstacle
+    2: 2, #stream
+    3: 4, #dessert
+}
+
+COLORS = {
+    0: 'white',
+    1: 'gray',
+    2: 'blue',
+    3: 'wheat',
+}
+
+#graph1
 '''width = 17
 height = 14
-graph1 = [[0 for j in range(height)] for i in range(width)]
+graph = [[0 for j in range(height)] for i in range(width)]
 obstacles = [(6,8), (6,7), (7,6), (7,5), (7,4), (8,4), (8,3), (8,2)]
 for x, y in obstacles:
     graph1[x][y] = 1
 start = (3, 5)
 target = (14, 4)'''
 
-'''graph2'''
+#graph2
 width = 40
 height = 20
-graph2 = [
+graph = [
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0],
     [0,0,0,0,0,0,0,0,1,1,0,0,1,1,0,0,0,1,0,0],
@@ -71,20 +88,6 @@ graph2 = [
 ]
 start = (4, 9)
 target = (35, 19)
-
-COSTS = {
-    0: 0, #reachable
-    1: float('inf'), #obstacle
-    2: 2, #stream
-    3: 4, #dessert
-}
-
-COLORS = {
-    0: 'white',
-    1: 'gray',
-    2: 'blue',
-    3: 'wheat',
-}
 
 class Node:
     def __init__(self, position, parent=None):
@@ -130,10 +133,11 @@ class AStar:
     def construct_path(self, node):
         #Note: you can accumulate total_cost here
         path = []
+        cost = node.g
         while node:
             path.append(node.position)
             node = node.parent
-        return path[::-1]
+        return path[::-1], cost
 
     def astar(self, start, target):
         open_list = []
@@ -158,7 +162,7 @@ class AStar:
                 neighbor.f = neighbor.g + neighbor.h
                 heapq.heappush(open_list, neighbor)
 
-        return None
+        return None, None
 
     def bi_astar(self, start, target):
         forward_open_list = []
@@ -172,7 +176,7 @@ class AStar:
         start_node.h = self.heuristic(start_node, target_node)
         start_node.f = start_node.g + start_node.h
 
-        target_node.g = 0
+        target_node.g = COSTS[self.graph[target[0]][target[1]]]
         target_node.h = self.heuristic(target_node, start_node)
         target_node.f = target_node.g + target_node.h
 
@@ -188,11 +192,11 @@ class AStar:
                 for node in backward_open_list:
                     if forward_current_node.position == node.position:
                         backward_node_list.append(node)
-                backward_node_list.sort(key=lambda node: node.f)
+                backward_node_list.sort(key=lambda node: node.g)
                 backward_node = backward_node_list[0]
-                forward_path = self.construct_path(forward_current_node)
-                backward_path = self.construct_path(backward_node)
-                return forward_path, backward_path
+                forward_path, forward_cost = self.construct_path(forward_current_node)
+                backward_path, backward_cost = self.construct_path(backward_node)
+                return forward_path, backward_path, forward_cost+backward_cost
             
             forward_closed_set.add(forward_current_node.position)
             for neighbor in self.get_neighbors(forward_current_node):
@@ -240,18 +244,21 @@ class AStar:
 Main function
 '''
 if __name__ == '__main__':
-    astar = AStar(width, height, graph2)
-    path = astar.astar(start, target)
+    
+    '''astar = AStar(width, height, graph)
+    path, cost = astar.astar(start, target)
+    print(cost)
     astar.plot_graph()
     astar.plot_path(path, 'green')
     astar.plot_start_target(start, target)
-    plt.show()
+    plt.show()'''
     
-    '''astar = AStar(width, height, graph2)
-    path1, path2 = astar.bi_astar(start, target)
+    astar = AStar(width, height, graph)
+    path_s, path_t, cost = astar.bi_astar(start, target)
+    print(cost)
     astar.plot_graph()
-    astar.plot_path(path1, 'green')
-    astar.plot_path(path2, 'red')
+    astar.plot_path(path_s, 'green')
+    astar.plot_path(path_t, 'red')
     astar.plot_start_target(start,target)
     plt.show()
     #print(path1)

@@ -6,7 +6,7 @@ import math
 '''
 Configuration
 '''
-numPoints = 1000
+numPoints = 4000
 
 class Point:
     def __init__(self, x, y):
@@ -225,4 +225,4 @@ Main function
 if __name__ == '__main__':
     points = generatePoints(numPoints)
     plotPoints(points)
-    divideAndConquer(points)
+    bruteForce(numPoints ,points)
